@@ -26,7 +26,7 @@
 - **물리 기반 이동**: `transform.position +=` 대신 `Rigidbody2D.MovePosition()`을 `FixedUpdate`에서 호출해 콜라이더 관통(터널링)을 방지했습니다.
 - **방어적 프로그래밍**: 모든 참조에 null 체크, `isBusy`/`isResolving` 플래그로 중복 입력·레이스 컨디션 방지.
 
-더 자세한 설계 근거와 코드 스니펫은 [노션 아키텍처 문서](https://app.notion.com/p/3d3cc809b1e081ea8136fff109a10659)에 정리했습니다.
+
 
 ## 파일 구조
 

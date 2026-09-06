@@ -91,22 +91,13 @@ public class QuizManager : MonoBehaviour
             return;
         }
 
-        // 1. 먼저 모든 책상을 규칙 메시지 책상으로 설정
-        foreach (DeskPuzzle desk in allDesks)
-        {
-            if (desk != null)
-            {
-                desk.SetRuleMessage(GetRandomClassroomRule());
-            }
-        }
-
-        // 2. 랜덤 선택을 위해 책상 목록과 문제 목록 복사
+        // 1. 랜덤 선택을 위해 책상 목록과 문제 목록 복사
         List<DeskPuzzle> deskPool = new List<DeskPuzzle>(allDesks);
         List<QuizQuestion> questionPool = new List<QuizQuestion>(questions);
 
         int count = Mathf.Min(puzzleDeskCount, deskPool.Count, questionPool.Count);
 
-        // 3. 책상 중 랜덤으로 puzzleDeskCount개를 뽑아서 문제 책상으로 변경
+        // 2. 책상 중 랜덤으로 puzzleDeskCount개를 뽑아서 문제 책상으로 변경
         for (int i = 0; i < count; i++)
         {
             int deskIndex = UnityEngine.Random.Range(0, deskPool.Count);
@@ -121,17 +112,46 @@ public class QuizManager : MonoBehaviour
 
             Debug.Log(selectedDesk.name + " 책상에 문제 배정: " + selectedQuestion.question);
         }
+
+        // 3. 문제가 배정되지 않은 나머지 책상(deskPool)에는 서로 겹치지 않는 규칙 문구를 배정
+        AssignUniqueRuleMessages(deskPool);
     }
 
-    private string GetRandomClassroomRule()
+    // 규칙 책상들에 규칙 문구를 하나씩 겹치지 않게 나눠주는 메서드
+    // (문제 배정과 같은 방식: 후보 목록을 복사해서 하나씩 뽑고 제거)
+    private void AssignUniqueRuleMessages(List<DeskPuzzle> ruleDesks)
     {
         if (classroomRules == null || classroomRules.Count == 0)
         {
-            return "교실에서 지켜야 할 규칙을 생각해 봐요.";
+            foreach (DeskPuzzle desk in ruleDesks)
+            {
+                if (desk != null)
+                {
+                    desk.SetRuleMessage("교실에서 지켜야 할 규칙을 생각해 봐요.");
+                }
+            }
+            return;
         }
 
-        int randomIndex = UnityEngine.Random.Range(0, classroomRules.Count);
-        return classroomRules[randomIndex];
+        List<string> rulePool = new List<string>(classroomRules);
+
+        foreach (DeskPuzzle desk in ruleDesks)
+        {
+            if (desk == null)
+            {
+                continue;
+            }
+
+            // 규칙 문구보다 규칙 책상이 많으면, 다 쓴 뒤 목록을 다시 채워서 계속 사용
+            if (rulePool.Count == 0)
+            {
+                rulePool = new List<string>(classroomRules);
+            }
+
+            int ruleIndex = UnityEngine.Random.Range(0, rulePool.Count);
+            desk.SetRuleMessage(rulePool[ruleIndex]);
+            rulePool.RemoveAt(ruleIndex);
+        }
     }
 
     public void OpenQuiz(DeskPuzzle desk, QuizQuestion question)
